@@ -1,4 +1,4 @@
-import App from './App.vue'
+import App from './App'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { useDeviceStore } from './store'
