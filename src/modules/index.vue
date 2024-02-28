@@ -64,31 +64,7 @@
 			name="birth"
 			content-align="right"
 		>
-			<DatePicker
-				v-model:date="formData.birth"
-				start="2015-5-5"
-				:allow-input="false"
-				@ok="onConfirm"
-			></DatePicker>
-			<!-- <t-date-time-picker
-					:value="formData.birth"
-					:mode="['date']"
-					title="选择日期"
-					start="2015-5-5"
-					format="YYYY-MM-DD"
-					@change="onChange"
-					@pick="onPick"
-					@confirm="onConfirm"
-					@cancel="onCancel"
-				/>
-				<t-date-picker
-					v-model="date"
-					placeholder="可清除、可输入的日期选择器"
-					clearable
-					allow-input
-					@change="handleChange"
-				/> -->
-			<!-- </t-popup> -->
+			<component :is="RenderDOM" />
 		</t-form-item>
 		<t-form-item
 			arrow
@@ -143,23 +119,6 @@
 				placeholder="请输入个人简介"
 			></t-textarea>
 		</t-form-item>
-		<t-form-item label="上传照片" name="photo">
-			<t-upload
-				class="upload"
-				:default-files="formData.photo"
-				multiple
-				:max="6"
-				:action="action"
-				:on-fail="onFail"
-				:on-progress="onProgress"
-				:on-change="onChangeUpload"
-				:on-preview="onPreview"
-				:on-success="onSuccess"
-				:on-remove="onRemove"
-				:on-select-change="onSelectChange"
-			>
-			</t-upload>
-		</t-form-item>
 		<div class="button-group">
 			<t-button theme="primary" type="submit" size="large"
 				>提交</t-button
@@ -175,98 +134,23 @@
 	</t-form>
 </template>
 <script lang="ts" setup>
+import MobileDatePickerComponent from '@/components/mobile/MobileDatePickerComponent'
+import PCDatePickerComponent from '@/components/pc/PCDatePickerComponent.tsx'
+import { useHocComponent } from '@/store'
 import {
 	ref,
 	reactive,
 	defineProps,
 	toRefs,
 	onMounted,
+	watchEffect,
 } from 'vue'
-import DatePicker from '@/components/DatePicker'
 
 const props = defineProps({
 	disabled: Boolean,
 })
 
-const date = ref('')
-
 const { disabled } = toRefs(props)
-
-// upload
-const onFail = ({
-	file,
-	e,
-}: {
-	file: any
-	e: ProgressEvent
-}): any => {
-	console.log('---onFail', file, e)
-	return null
-}
-
-function handleChange(value, context) {
-	console.log('onChange:', value, context)
-	console.log('timestamp:', context.dayjsValue.valueOf())
-	console.log(
-		'YYYYMMDD:',
-		context.dayjsValue.format('YYYYMMDD')
-	)
-}
-
-const onProgress = ({ file, percent, type, e }: any) => {
-	console.log('---onProgress:', file, percent, type, e)
-}
-const onChangeUpload = (
-	files: Array<any>,
-	{ e, response, trigger, index, file }: any
-) => {
-	console.log(
-		'====onChange',
-		files,
-		e,
-		response,
-		trigger,
-		index,
-		file
-	)
-}
-const onPreview = ({
-	file,
-	e,
-}: {
-	file: any
-	e: MouseEvent
-}) => {
-	console.log('====onPreview', file, e)
-}
-const onSuccess = ({
-	file,
-	fileList,
-	response,
-	e,
-}: any) => {
-	console.log('====onSuccess', file, fileList, e, response)
-}
-const onRemove = ({ index, file, e }: any) => {
-	console.log('====onRemove', index, file, e)
-}
-const onSelectChange = (files: Array<any>) => {
-	console.log('====onSelectChange', files)
-}
-const action =
-	'https://service-bv448zsw-1257786608.gz.apigw.tencentcs.com/api/upload-demo'
-const files = ref([
-	{
-		url: 'https://tdesign.gtimg.com/mobile/demos/example4.png',
-		name: 'uploaded1.png',
-		type: 'image',
-	},
-	{
-		url: 'https://tdesign.gtimg.com/mobile/demos/example6.png',
-		name: 'uploaded2.png',
-		type: 'image',
-	},
-])
 
 const formData = reactive({
 	name: '',
@@ -277,35 +161,38 @@ const formData = reactive({
 	age: 3,
 	description: 2,
 	resume: '',
-	photo: files,
 })
 const form = ref(null)
+
+const RenderDOM = useHocComponent(
+	// NOTE: 遇到无法适用的情况，PC端和移动端需要展示的组件
+	PCDatePickerComponent,
+	MobileDatePickerComponent,
+	// NOTE: 各种参数
+	{
+		pcProps: {
+			birth: formData.birth,
+			allowInput: false,
+		},
+		mobileProps: {
+			birth: formData.birth,
+			start: '2021-10-05',
+		},
+	},
+	{
+		// NOTE: 各种钩子
+		onUpdate: (e, options) => {
+			formData.birth = e
+			console.log(options)
+		},
+	}
+)
 
 const groupChangeFn = (
 	value: any,
 	context: { e: Event }
 ) => {
 	console.log(value, context)
-}
-
-const visible = ref(false)
-const onChange = (value: string) => {
-	console.log('change: ', value)
-}
-
-const onPick = (value: string) => {
-	console.log('pick: ', value)
-}
-
-const onCancel = () => {
-	console.log('cancel')
-	visible.value = false
-}
-
-const onConfirm = (value: string) => {
-	console.log('confirm: ', value)
-	formData.birth = value
-	visible.value = false
 }
 
 // 级联选择器
@@ -391,10 +278,6 @@ const onChangeStepper = ($event: number) => {
 	formData.age = $event
 }
 
-const handleClick = e => {
-	console.log('e', e)
-}
-
 // rate
 const rateGap = 8
 
@@ -446,6 +329,9 @@ const rules = {
 	],
 }
 
+watchEffect(() => {
+	console.log('formData', formData)
+})
 onMounted(() => {
 	// @ts-ignore
 	form.value.setValidateMessage(rules)
