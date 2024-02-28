@@ -29,9 +29,6 @@
 				:clearable="false"
 				placeholder="请输入内容"
 			>
-				<template #suffixIcon>
-					<BrowseOffIcon />
-				</template>
 			</t-input>
 		</t-form-item>
 		<t-form-item label="性别" name="gender">
@@ -67,15 +64,13 @@
 			name="birth"
 			content-align="right"
 		>
-			<t-input
-				v-model="formData.birth"
-				borderless
-				align="right"
-				placeholder="请输入内容"
-				@click="visible = true"
-			></t-input>
-			<t-popup v-model="visible" placement="bottom">
-				<t-date-time-picker
+			<DatePicker
+				v-model:date="formData.birth"
+				start="2015-5-5"
+				:allow-input="false"
+				@ok="onConfirm"
+			></DatePicker>
+			<!-- <t-date-time-picker
 					:value="formData.birth"
 					:mode="['date']"
 					title="选择日期"
@@ -86,7 +81,14 @@
 					@confirm="onConfirm"
 					@cancel="onCancel"
 				/>
-			</t-popup>
+				<t-date-picker
+					v-model="date"
+					placeholder="可清除、可输入的日期选择器"
+					clearable
+					allow-input
+					@change="handleChange"
+				/> -->
+			<!-- </t-popup> -->
 		</t-form-item>
 		<t-form-item
 			arrow
@@ -180,10 +182,14 @@ import {
 	toRefs,
 	onMounted,
 } from 'vue'
+import DatePicker from '@/components/DatePicker'
 
 const props = defineProps({
 	disabled: Boolean,
 })
+
+const date = ref('')
+
 const { disabled } = toRefs(props)
 
 // upload
@@ -196,6 +202,15 @@ const onFail = ({
 }): any => {
 	console.log('---onFail', file, e)
 	return null
+}
+
+function handleChange(value, context) {
+	console.log('onChange:', value, context)
+	console.log('timestamp:', context.dayjsValue.valueOf())
+	console.log(
+		'YYYYMMDD:',
+		context.dayjsValue.format('YYYYMMDD')
+	)
 }
 
 const onProgress = ({ file, percent, type, e }: any) => {
@@ -374,6 +389,10 @@ const showCascader = () => {
 // 步进器
 const onChangeStepper = ($event: number) => {
 	formData.age = $event
+}
+
+const handleClick = e => {
+	console.log('e', e)
 }
 
 // rate
