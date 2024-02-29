@@ -8,14 +8,9 @@ export default defineComponent({
 		const value = ref((inject('mobileProps') as any).birth)
 		const isDatePickerVisible = ref(false);
 
-		// 更新日期并发出事件
-		const updateDate = (newDate) => {
-			value.value = newDate
-		};
 
-		// 确认日期选择
 		const confirmDateSelection = (newDate) => {
-			updateDate(newDate);
+			value.value = newDate
 			isDatePickerVisible.value = false;
 			emit('update', newDate)
 		};

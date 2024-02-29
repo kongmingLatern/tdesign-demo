@@ -1,4 +1,4 @@
-import { defineComponent, inject, ref } from 'vue'
+import { defineComponent, inject, ref } from "vue"
 
 export default defineComponent({
 	inheritAttrs: false,
@@ -10,6 +10,7 @@ export default defineComponent({
 			value.value = newVal
 			emit('update', newVal)
 		}
+
 		return () => <t-date-picker
 			v-model={value.value}
 			placeholder="可清除、可输入的日期选择器"
